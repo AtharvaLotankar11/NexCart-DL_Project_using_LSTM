@@ -1,0 +1,167 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Search, Filter, ShoppingBag, Loader2, Sparkles, X } from 'lucide-react';
+import ProductCard from '@/components/ProductCard';
+import ProductDetailModal from '@/components/ProductDetailModal';
+import ScrollReveal from '@/components/ScrollReveal';
+
+export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const fetchProducts = async () => {
+    try {
+      const resp = await axios.get('http://localhost:8000/api/products/');
+      setProducts(resp.data);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const resp = await axios.get('http://localhost:8000/api/categories/');
+      setCategories(resp.data);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || product.category.name === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className="flex flex-col space-y-12 pb-24 max-w-7xl mx-auto w-full">
+      
+      {/* Page Header */}
+      <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-8 px-4">
+        <ScrollReveal direction="left">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-widest border border-emerald-100/50">
+               <Sparkles className="w-3 h-3" />
+               <span>AI-Powered Catalog</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+              Explore Our <br />
+              <span className="text-emerald-600">Premium Range.</span>
+            </h1>
+          </div>
+        </ScrollReveal>
+
+        {/* Search & Meta */}
+        <div className="w-full lg:max-w-md space-y-4">
+          <div className="relative group">
+             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+             </div>
+             <input 
+               type="text"
+               placeholder="Search by name or category..."
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="block w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-gray-700 placeholder:text-gray-400 font-medium"
+             />
+             {searchQuery && (
+               <button 
+                 onClick={() => setSearchQuery('')}
+                 className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-emerald-600"
+               >
+                 <X className="h-4 w-4" />
+               </button>
+             )}
+          </div>
+          <p className="text-xs text-gray-400 font-medium px-2">
+             Showing <span className="text-gray-900 font-bold">{filteredProducts.length}</span> curated products 
+             {selectedCategory !== 'All' && <span> in <span className="text-emerald-600 font-black">{selectedCategory}</span></span>}
+          </p>
+        </div>
+      </section>
+
+      {/* Categories Toolbar */}
+      <section className="px-4 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-3">
+        <button 
+          onClick={() => setSelectedCategory('All')}
+          className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${selectedCategory === 'All' ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-100 text-gray-500 hover:border-emerald-300'}`}
+        >
+          All Domains
+        </button>
+        {categories.map((cat) => (
+          <button 
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.name)}
+            className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${selectedCategory === cat.name ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-100 text-gray-500 hover:border-emerald-300'}`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </section>
+
+      {/* Main Grid */}
+      <section className="px-4">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-40">
+            <Loader2 className="w-12 h-12 text-emerald-600 animate-spin" />
+            <p className="font-bold text-emerald-900 uppercase tracking-widest text-[10px]">Initializing AI Catalog...</p>
+          </div>
+        ) : filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+            {filteredProducts.map((product, idx) => (
+              <ScrollReveal key={product.id} delay={idx % 4 * 0.1}>
+                 <ProductCard 
+                   product={product} 
+                   onOpen={(p) => {
+                     setSelectedProduct(p);
+                     setIsModalOpen(true);
+                   }} 
+                 />
+              </ScrollReveal>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-40 gap-6">
+             <div className="p-8 bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
+                <ShoppingBag className="w-16 h-16 text-gray-200" />
+             </div>
+             <div className="text-center">
+                <h3 className="text-2xl font-black text-gray-700">No matches found</h3>
+                <p className="text-gray-400 max-w-xs mx-auto mt-2 font-medium">We couldn't find any products matching your current criteria.</p>
+                <button 
+                  onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}
+                  className="mt-6 text-emerald-600 font-bold hover:underline underline-offset-4"
+                >
+                  Reset All Filters
+                </button>
+             </div>
+          </div>
+        )}
+      </section>
+
+      {/* Subtle Bottom Glow */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-96 bg-emerald-50/20 rounded-[100%] blur-[120px] -z-10 pointer-events-none" />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal 
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </div>
+  );
+}

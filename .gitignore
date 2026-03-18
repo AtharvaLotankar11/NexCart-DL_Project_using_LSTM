@@ -1,0 +1,18 @@
+# Node.js
+**/node_modules/
+**/dist/
+**/.next/
+frontend/.env*
+
+# Python / Django
+**/__pycache__/
+**/*.pyc
+**/venv/
+**/env/
+backend/.env
+backend/*.sqlite3
+backend/media/
+
+# OS Files
+.DS_Store
+Thumbs.db
