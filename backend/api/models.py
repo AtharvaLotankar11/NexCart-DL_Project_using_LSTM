@@ -81,3 +81,18 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return f"Recommendation for {self.user.username}: {self.recommended_product.name}"
+
+
+class OTPCode(models.Model):
+    """Stores a short-lived 6-digit OTP for passwordless email login."""
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        from django.utils import timezone
+        import datetime
+        return timezone.now() < self.created_at + datetime.timedelta(minutes=10)
+
+    def __str__(self):
+        return f"OTP for {self.email}"

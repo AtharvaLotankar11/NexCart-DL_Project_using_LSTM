@@ -1,0 +1,10 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+requests
+python-dotenv
+razorpay
+tensorflow
+numpy
+psycopg2-binary

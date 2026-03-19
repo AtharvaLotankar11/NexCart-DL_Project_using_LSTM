@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -6,8 +7,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import UserProfile
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import UserProfile, OTPCode
 from .serializers import UserSerializer
+
+# ─── USER REGISTRATION & PROFILE ──────────────────────────────────────────────
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -42,12 +47,16 @@ class RegisterView(APIView):
                 password=data.get('password'),
                 first_name=data.get('first_name', '')
             )
-            # Profile is auto-created by signals or we create it here
-            profile, created = UserProfile.objects.get_or_create(user=user)
-            profile.is_email_verified = True
+            
+            # Profile is auto-created by signals.py
+            # We fetch it to set any initial flags if needed
+            profile = user.profile
+            # Note: is_email_verified should probably be False until verified, 
+            # but keeping existing logic if intended for immediate trial access.
+            profile.is_email_verified = False  
             profile.save()
             
-            # Send Verification Email (Nodemailer equivalent)
+            # Send Verification Email
             subject = 'Welcome to NexCart - Verify Your Email'
             message = f'Hi {user.first_name},\n\nThank you for registering at NexCart. Please verify your email by clicking the link: http://localhost:3000/verify-email?token={user.id}'
             from_email = os.environ.get('EMAIL_HOST_USER')
@@ -107,3 +116,123 @@ class VerifyEmailView(APIView):
             return Response({'message': 'Email successfully verified!'})
         except User.DoesNotExist:
             return Response({'error': 'Invalid verification token'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ─── EMAIL OTP & IDENTITY RECOVERY ───────────────────────────────────────────
+
+class SendOTPView(APIView):
+    """Generate a 6-digit OTP and email it to the user for login or recovery."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Only allow registered users
+        if not User.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'No account found with this email. Please register first.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Delete any previous OTPs for this email
+        OTPCode.objects.filter(email=email).delete()
+
+        # Generate a fresh 6-digit OTP
+        code = f"{random.randint(100000, 999999)}"
+        OTPCode.objects.create(email=email, code=code)
+
+        # Send email
+        from_email = os.environ.get('EMAIL_HOST_USER')
+        try:
+            send_mail(
+                subject='NexCart — Security Verification Code',
+                message=(
+                    f'Your NexCart verification code is:\n\n'
+                    f'  {code}\n\n'
+                    f'Use this code to authorize your login or recover your workspace identity.\n'
+                    f'This code expires in 10 minutes. Do not share it.'
+                ),
+                from_email=from_email,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            return Response({'error': 'Failed to dispatch security code. Please try again later.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
+
+
+class VerifyOTPView(APIView):
+    """Verify the OTP and return JWT tokens on success."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        code = request.data.get('code', '').strip()
+
+        if not email or not code:
+            return Response({'error': 'Email and OTP code are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Get latest OTP for this email
+            otp_obj = OTPCode.objects.filter(email=email, code=code).latest('created_at')
+        except OTPCode.DoesNotExist:
+            return Response({'error': 'Invalid OTP. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp_obj.is_valid():
+            otp_obj.delete()
+            return Response({'error': 'OTP has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # OTP is valid — clean it up and issue JWT
+        otp_obj.delete()
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'Associated identity not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }, status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(APIView):
+    """Verify the OTP and reset user password."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        code = request.data.get('code', '').strip()
+        new_password = request.data.get('password', '').strip()
+
+        if not email or not code or not new_password:
+            return Response({'error': 'Email, OTP code and new password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'Security requirement: Password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            otp_obj = OTPCode.objects.filter(email=email, code=code).latest('created_at')
+        except OTPCode.DoesNotExist:
+            return Response({'error': 'Invalid or missing security code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp_obj.is_valid():
+            otp_obj.delete()
+            return Response({'error': 'Security code has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # OTP is valid — reset password
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            
+            # Clean up OTP after use
+            otp_obj.delete()
+            
+            return Response({'message': 'Neural Link recovered. Please login with your new access key.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User identity not found.'}, status=status.HTTP_404_NOT_FOUND)

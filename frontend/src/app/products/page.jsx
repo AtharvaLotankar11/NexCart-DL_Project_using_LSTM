@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { ShieldAlert, Search, Filter, ShoppingBag, Loader2, Sparkles, X } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
@@ -11,16 +12,26 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
   const { user, loading: authLoading } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [priceRange, setPriceRange] = useState(50000); // New state
-  const { addToCart } = useCart(); // New hook
+  const [priceRange, setPriceRange] = useState(50000); 
+  const { addToCart } = useCart(); 
+
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    } else {
+      setSelectedCategory('All');
+    }
+  }, [categoryParam]);
 
   useEffect(() => {
     const fetchData = async () => {

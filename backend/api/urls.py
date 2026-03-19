@@ -4,7 +4,7 @@ from .views import (
     CategoryViewSet, ProductViewSet, CartViewSet, OrderViewSet, RecommendationViewSet,
     create_razorpay_order, verify_payment, track_interaction
 )
-from .auth_views import RegisterView, VerifyEmailView, MeView
+from .auth_views import RegisterView, VerifyEmailView, MeView, SendOTPView, VerifyOTPView, ResetPasswordView
 from .recommendation_view import get_user_recommendations
 from .analytics_view import get_user_analytics
 
@@ -20,6 +20,9 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('auth/verify-email/', VerifyEmailView.as_view(), name='auth_verify_email'),
     path('auth/me/', MeView.as_view(), name='auth_me'),
+    path('auth/send-otp/', SendOTPView.as_view(), name='auth_send_otp'),
+    path('auth/verify-otp/', VerifyOTPView.as_view(), name='auth_verify_otp'),
+    path('auth/reset-password/', ResetPasswordView.as_view(), name='auth_reset_password'),
     
     # E-commerce and ML Endpoints
     path('create-order/', create_razorpay_order, name='create_order'),
