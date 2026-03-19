@@ -1,8 +1,8 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Sidebar from "@/components/Sidebar";
-import Footer from "@/components/Footer";
+import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,23 +11,15 @@ export const metadata = {
   description: "LSTM-based personalized AI E-Commerce System",
 };
 
-import { AuthProvider } from "@/context/AuthContext";
-import { CartProvider } from "@/context/CartContext";
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[#f9f9fa] text-gray-800 antialiased h-screen flex flex-col`}>
+      <body className={`${inter.className} bg-[#f9f9fa] text-gray-800 antialiased overflow-hidden`}>
         <AuthProvider>
           <CartProvider>
-            <Navbar />
-            <div className="flex flex-1 overflow-hidden">
-              <Sidebar />
-              <main className="flex-1 md:ml-64 overflow-y-auto p-4 md:p-8">
-                {children}
-                <Footer />
-              </main>
-            </div>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
           </CartProvider>
         </AuthProvider>
       </body>

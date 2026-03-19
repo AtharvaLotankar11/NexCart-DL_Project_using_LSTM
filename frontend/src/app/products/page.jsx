@@ -48,7 +48,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="flex flex-col space-y-12 pb-24 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col space-y-8 pb-16 max-w-7xl mx-auto w-full">
       
       {/* Page Header */}
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-8 px-4">
@@ -58,9 +58,9 @@ export default function ProductsPage() {
                <Sparkles className="w-3 h-3" />
                <span>AI-Powered Catalog</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
-              Explore Our <br />
-              <span className="text-emerald-600">Premium Range.</span>
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+               Explore Our <br />
+               <span className="text-emerald-600">Premium Range.</span>
             </h1>
           </div>
         </ScrollReveal>
@@ -121,7 +121,7 @@ export default function ProductsPage() {
             <p className="font-bold text-emerald-900 uppercase tracking-widest text-[10px]">Initializing AI Catalog...</p>
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-8">
             {filteredProducts.map((product, idx) => (
               <ScrollReveal key={product.id} delay={idx % 4 * 0.1}>
                  <ProductCard 

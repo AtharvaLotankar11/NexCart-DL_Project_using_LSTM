@@ -3,100 +3,96 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Shield } from 'lucide-react';
 import ScrollReveal from '@/components/ScrollReveal';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[85vh] flex flex-col lg:flex-row items-center justify-between pt-16 pb-20 px-4 max-w-7xl mx-auto w-full gap-16 overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-200/20 rounded-full blur-[120px] -z-10" />
-      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-emerald-100/30 rounded-full blur-[120px] -z-10" />
+    <section className="relative pt-24 pb-12 w-full flex flex-col items-center justify-center overflow-hidden bg-white">
+      
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-blue-50/50 to-transparent -z-10" />
 
-      <div className="flex-1 space-y-10 text-center lg:text-left z-10">
-        <ScrollReveal direction="left">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100/50 text-emerald-700 text-sm font-semibold mb-6 shadow-sm">
-            <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
-            <span>NexCart AI v2.0 is Here</span>
+      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+        <ScrollReveal direction="up" distance={30}>
+          
+          {/* Light Glassmorphic Badge */}
+          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-blue-50/80 backdrop-blur-md border border-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-[0.2em] mb-8 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <span>NexCart AI v2.0 Platform</span>
           </div>
           
-          <h1 className="text-6xl lg:text-8xl font-black tracking-tight text-gray-900 leading-[1.05]">
-            Smarter Shopping, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-              Personalized for You.
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto lg:mx-0 mt-8 leading-relaxed font-medium">
-            Discover a shopping experience that predicts your style using deep learning. 
-            No more endless searching—just perfectly curated choices.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mt-12">
-            <Link 
-              href="/products" 
-              className="group relative px-10 py-5 bg-emerald-600 text-white rounded-2xl font-bold shadow-2xl shadow-emerald-200/50 hover:bg-emerald-700 transition-all active:scale-95 flex items-center gap-3 overflow-hidden"
-            >
-              <span className="relative z-10">Explore Catalog</span>
-              <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform relative z-10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-transparent opacity-0 group-hover:opacity-20 transition-opacity" />
-            </Link>
-            
-            <Link 
-              href="/login" 
-              className="px-10 py-5 bg-white/50 backdrop-blur-md border border-gray-200 hover:border-emerald-600 hover:bg-white text-gray-800 hover:text-emerald-700 rounded-2xl font-bold transition-all shadow-xl shadow-gray-100/50"
-            >
-              Create Account
-            </Link>
+          <div className="space-y-6 mb-12">
+             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-gray-900 leading-[1.05]">
+               Personalized <br />
+               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 animate-gradient-x">
+                 Intelligence.
+               </span>
+             </h1>
+             
+             <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed font-medium">
+               Deep learning predictions for a curated shopping experience. 
+               Smart curation for the modern identity.
+             </p>
           </div>
 
-          {/* Social Proof Placeholder */}
-          <div className="hidden md:flex items-center gap-4 mt-16 pt-8 border-t border-gray-100">
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-emerald-700 text-[10px] font-bold">
-                  JS
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 px-4">
+             <Link 
+               href="/products" 
+               className="group w-full sm:w-auto px-10 py-5 bg-gray-900 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-gray-200 hover:bg-blue-600 transform transition-all active:scale-95 flex items-center justify-center gap-3"
+             >
+               EXPLORE CATALOG
+               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+             </Link>
+             
+             <Link 
+               href="/login" 
+               className="w-full sm:w-auto px-10 py-5 bg-white backdrop-blur-md border border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-800 rounded-2xl font-black text-sm tracking-widest transition-all"
+             >
+               JOIN PLATFORM
+             </Link>
+          </div>
+
+          {/* Hero Image Integration - Main Section Visual */}
+          <div className="relative w-full max-w-4xl mx-auto group">
+             <div className="absolute inset-0 bg-blue-500/5 blur-[100px] -z-10 rounded-full" />
+             
+             <div className="relative rounded-[40px] md:rounded-[60px] overflow-hidden border border-gray-100 shadow-2xl shadow-blue-900/10">
+                <Image 
+                  src="/hero-img.jpg" 
+                  alt="NexCart Intelligence Center" 
+                  width={1200} 
+                  height={675}
+                  className="w-full h-auto object-cover transform scale-[1.01] group-hover:scale-105 transition-transform duration-1000"
+                  priority
+                />
+                
+                {/* Frosted Glass Overlay Elements on Image */}
+                <div className="absolute top-6 right-6 p-4 bg-white/40 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl hidden md:flex items-center gap-4 animate-in slide-in-from-top-4 duration-1000">
+                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                      <Zap className="w-6 h-6 text-blue-600" />
+                   </div>
+                   <div className="text-left">
+                      <p className="text-[10px] font-black text-gray-500 tracking-wider">PRED-CONFIDENCE</p>
+                      <p className="text-xl font-black text-gray-900">99.8%</p>
+                   </div>
                 </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 font-medium">
-              Join <span className="text-gray-900 font-bold">2,000+</span> shoppers using AI today.
-            </p>
+
+                <div className="absolute bottom-6 left-6 p-4 bg-white/40 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl hidden md:flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-1000 delay-300">
+                   <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                      <Shield className="w-6 h-6 text-white" />
+                   </div>
+                   <div className="text-left">
+                      <p className="text-[10px] font-black text-gray-500 tracking-wider">SECURE LAYER</p>
+                      <p className="text-xl font-black text-gray-900">ACTIVE</p>
+                   </div>
+                </div>
+             </div>
           </div>
         </ScrollReveal>
       </div>
 
-      <div className="flex-1 relative w-full aspect-square max-w-[600px] lg:max-w-none group">
-        <ScrollReveal direction="right" delay={0.2}>
-          <div className="relative w-full h-full perspective-1000 animate-hero-float">
-            {/* Glossy Backdrop */}
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/40 to-white rounded-[4rem] -rotate-6 transform scale-95 blur-sm border border-emerald-50/50 group-hover:rotate-0 transition-transform duration-700" />
-            
-            <div className="relative w-full h-full transition-transform duration-700 group-hover:scale-105">
-              <Image 
-                src="/hero-product.png"
-                alt="Smart AI Product"
-                fill
-                className="object-contain drop-shadow-[0_35px_35px_rgba(16,185,129,0.15)] filter saturate-[1.1]"
-                priority
-              />
-            </div>
-
-            {/* AI HUD Decorations */}
-            <div className="absolute -top-10 -right-10 p-4 bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-2xl animate-bounce duration-[3000ms]">
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
-                     <Sparkles className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 tracking-wider">PRED-CONFIDENCE</p>
-                    <p className="text-lg font-black text-gray-900 leading-none">99.8%</p>
-                  </div>
-               </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </div>
     </section>
   );
 }

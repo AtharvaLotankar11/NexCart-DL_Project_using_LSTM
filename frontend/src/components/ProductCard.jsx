@@ -20,7 +20,7 @@ export default function ProductCard({ product, onOpen }) {
   return (
     <div 
       onClick={() => onOpen(product)}
-      className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden flex flex-col h-full cursor-pointer"
+      className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden flex flex-col h-full cursor-pointer"
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -50,20 +50,20 @@ export default function ProductCard({ product, onOpen }) {
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col flex-1 space-y-4">
+      <div className="p-4 flex flex-col flex-1 space-y-3">
         <div className="space-y-1">
-          <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
+          <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1 leading-snug">
             {product.name}
           </h3>
-          <p className="text-xs text-gray-400 font-medium line-clamp-2 leading-relaxed">
+          <p className="text-[10px] text-gray-400 font-medium line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         </div>
 
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
           <div className="flex flex-col">
-            <span className="text-xs text-gray-400 font-bold uppercase tracking-tighter">Price</span>
-            <span className="text-lg font-black text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">Price</span>
+            <span className="text-base font-black text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
           </div>
           
           <button 
@@ -71,10 +71,10 @@ export default function ProductCard({ product, onOpen }) {
               e.stopPropagation();
               addToCart(product);
             }}
-            className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all active:scale-90"
+            className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all active:scale-90"
             title="Add to Cart"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-4 h-4" />
           </button>
         </div>
       </div>

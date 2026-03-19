@@ -37,7 +37,7 @@ export default function NavigationHub() {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-32 w-full relative">
+    <section className="max-w-7xl mx-auto px-4 py-12 w-full relative">
       {/* HUD Label */}
       <div className="absolute top-0 right-10 flex items-center gap-2 px-3 py-1 bg-gray-50 text-gray-400 text-[10px] font-bold tracking-widest uppercase rounded-b-xl border-x border-b border-gray-100/50">
         <Layout className="w-3 h-3 text-emerald-500" />
@@ -45,7 +45,7 @@ export default function NavigationHub() {
       </div>
 
       <ScrollReveal>
-        <div className="text-center mb-20 space-y-4">
+        <div className="text-center mb-10 space-y-3">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-snug lg:leading-normal">
              Take Control of <span className="text-emerald-600">Your Hub.</span>
           </h2>

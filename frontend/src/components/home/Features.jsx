@@ -37,7 +37,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="bg-gray-50/50 py-32 border-y border-gray-100/50 backdrop-blur-sm relative overflow-hidden">
+    <section className="bg-gray-50/50 py-16 border-y border-gray-100/50 backdrop-blur-sm relative overflow-hidden">
       {/* Decorative SVG Pattern Background */}
       <div className="absolute inset-0 opacity-[0.03] -z-10 pointer-events-none">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -52,7 +52,7 @@ export default function Features() {
 
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
-          <div className="text-center mb-24 space-y-5">
+          <div className="text-center mb-16 space-y-4">
              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-widest shadow-sm">
                 <Cpu className="w-3 h-3" />
                 <span>The NexCart Engine</span>

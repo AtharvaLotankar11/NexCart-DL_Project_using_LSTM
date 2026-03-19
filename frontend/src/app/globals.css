@@ -10,9 +10,15 @@
   --color-foreground: var(--foreground);
 }
 
+html {
+  font-size: 15px; /* High-density scaling: 1rem is now smaller for that 'compact' commercial feel */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @keyframes float {
@@ -58,5 +64,43 @@ body {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Neuomorphic (Extruded) - Soft 3D feel */
+  .neu-flat {
+    background: #f9f9fa;
+    box-shadow: 6px 6px 12px #e9e9ea, -6px -6px 12px #ffffff;
+  }
+  .neu-inset {
+    background: #f9f9fa;
+    box-shadow: inset 6px 6px 12px #e9e9ea, inset -6px -6px 12px #ffffff;
+  }
+
+  /* Claymorphic - Squishy Bouncy 3D */
+  .clay-button {
+    background: #10b981; /* Default emerald */
+    box-shadow: 
+      inset 4px 4px 6px rgba(255, 255, 255, 0.4),
+      inset -4px -4px 6px rgba(0, 0, 0, 0.2),
+      6px 6px 15px rgba(16, 185, 129, 0.2);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Glassmorphic - Frosted Portal */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 12px 32px 0 rgba(31, 38, 135, 0.1);
+  }
+
+  /* Skeuomorphic (Engraved) - Material Impression */
+  .sk-engraved {
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    background-color: #374151; /* Slate 700 */
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.6), 1px 1px 1px rgba(255, 255, 255, 0.3);
   }
 }

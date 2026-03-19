@@ -31,7 +31,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
       />
       
       {/* Content Card */}
-      <div className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl shadow-emerald-900/20 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col md:flex-row">
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl shadow-emerald-900/20 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col md:flex-row">
         
         {/* Close Button */}
         <button 
@@ -57,14 +57,14 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
         </div>
 
         {/* Right: Content Section */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-1/2 p-7 md:p-10 overflow-y-auto no-scrollbar">
           <div className="space-y-8">
             {/* Header */}
             <div className="space-y-4">
               <span className="px-4 py-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-extrabold uppercase tracking-widest rounded-full border border-emerald-100/50">
                 {product.category?.name || 'Essential Item'}
               </span>
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
                 {product.name}
               </h2>
               <div className="flex items-center gap-4 text-sm font-bold text-gray-400">
@@ -88,7 +88,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
             <div className="flex flex-wrap items-end justify-between gap-6 pt-6 border-t border-gray-100">
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Premium Price</span>
-                <div className="text-4xl font-black text-gray-900 tracking-tighter">
+                <div className="text-3xl font-black text-gray-900 tracking-tighter">
                   ₹{parseFloat(product.price).toLocaleString()}
                 </div>
               </div>
