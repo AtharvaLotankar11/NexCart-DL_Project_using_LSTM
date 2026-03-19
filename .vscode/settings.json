@@ -1,9 +1,0 @@
-{
-    "python.defaultInterpreterPath": "",
-    "python.analysis.extraPaths": [
-        "d:/NexCart-DL_Project_using_LSTM/backend",
-        "d:/NexCart-DL_Project_using_LSTM/backend/venv/Lib/site-packages"
-    ],
-    "python.analysis.useLibraryCodeForTypes": true,
-    "python.terminal.activateEnvInSelectedTerminal": true
-}
