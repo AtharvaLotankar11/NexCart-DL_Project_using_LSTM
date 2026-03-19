@@ -1,13 +1,29 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { X, ShoppingCart, Minus, Plus, Star, ShieldCheck, Truck } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import axios from 'axios';
 
 export default function ProductDetailModal({ product, isOpen, onClose }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+
+  // Track interaction when modal opens
+  useEffect(() => {
+    if (isOpen && product) {
+      axios.post('http://127.0.0.1:8000/api/track-interaction/', {
+        product_id: product.id,
+        action: 'view'
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+      }).catch(err => {
+        // Silently fail if interaction tracking endpoint is not fully ready
+        console.warn("Telemetry interaction failed: User likely not authenticated or backend busy.");
+      });
+    }
+  }, [isOpen, product]);
 
   if (!isOpen || !product) return null;
 
@@ -31,7 +47,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
       />
       
       {/* Content Card */}
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl shadow-emerald-900/20 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col md:flex-row">
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl shadow-emerald-900/20 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col md:flex-row text-[15px]">
         
         {/* Close Button */}
         <button 

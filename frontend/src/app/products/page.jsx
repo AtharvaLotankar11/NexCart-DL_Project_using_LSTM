@@ -2,12 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Filter, ShoppingBag, Loader2, Sparkles, X } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
+import { ShieldAlert, Search, Filter, ShoppingBag, Loader2, Sparkles, X } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import ScrollReveal from '@/components/ScrollReveal';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export default function ProductsPage() {
+  const { user, loading: authLoading } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,31 +19,58 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const fetchProducts = async () => {
-    try {
-      const resp = await axios.get('http://localhost:8000/api/products/');
-      setProducts(resp.data);
-    } catch (err) {
-      console.error("Error fetching products:", err);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const resp = await axios.get('http://localhost:8000/api/categories/');
-      setCategories(resp.data);
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [priceRange, setPriceRange] = useState(50000); // New state
+  const { addToCart } = useCart(); // New hook
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    const fetchData = async () => {
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          axios.get('http://127.0.0.1:8000/api/products/'),
+          axios.get('http://127.0.0.1:8000/api/categories/')
+        ]);
+        setProducts(prodRes.data);
+        setCategories(catRes.data);
+      } catch (err) {
+        console.error("Failed to load ecosystem data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
+
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+         <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+         <p className="font-black text-gray-400 uppercase tracking-widest text-[10px]">VERIFYING SECURITY CORE...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 animate-in fade-in duration-700">
+         <div className="p-16 bg-white rounded-[50px] border border-gray-100 shadow-2xl shadow-gray-200/40 text-center space-y-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] -z-10 group-hover:bg-emerald-500/10 transition-all duration-1000" />
+            <div className="mx-auto w-24 h-24 bg-emerald-50 rounded-[30px] flex items-center justify-center border border-emerald-100">
+               <ShieldAlert className="w-12 h-12 text-emerald-600" />
+            </div>
+            <div className="space-y-4">
+               <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Secure Access Required.</h1>
+               <p className="text-gray-500 font-medium max-w-sm mx-auto leading-relaxed">
+                  The NexCart AI catalog is reserved for authenticated workspace identities. Please authorize your session to continue.
+               </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+               <Link href="/login" className="px-10 py-5 bg-gray-900 text-white rounded-[24px] font-black hover:bg-emerald-600 transition-all shadow-xl shadow-gray-200">HUB AUTHORIZATION</Link>
+               <Link href="/register" className="px-10 py-5 bg-white text-gray-900 border border-gray-100 rounded-[24px] font-black hover:bg-gray-50 transition-all">JOIN ECOSYSTEM</Link>
+            </div>
+         </div>
+      </div>
+    );
+  }
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());

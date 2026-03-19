@@ -21,7 +21,7 @@ function VerifyEmailContent() {
 
     const verifyToken = async () => {
       try {
-        await axios.post('http://localhost:8000/api/auth/verify-email/', { token });
+        await axios.post('http://127.0.0.1:8000/api/auth/verify-email/', { token });
         setStatus('Email verified successfully!');
         setTimeout(() => router.push('/login'), 3000);
       } catch (err) {

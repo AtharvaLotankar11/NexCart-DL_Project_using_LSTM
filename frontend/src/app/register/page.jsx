@@ -17,12 +17,14 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const recaptchaRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     const token = recaptchaRef.current.getValue();
     if (!token) {
@@ -39,7 +41,7 @@ export default function Register() {
 
     try {
       // Adjusted for common development environments
-      const response = await fetch('http://127.0.0.1:8000/api/register/', {
+      const response = await fetch('http://127.0.0.1:8000/api/auth/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -54,7 +56,10 @@ export default function Register() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      router.push('/login?registered=true');
+      setSuccess("Identity Protocol Registered! Initializing NexCart Access...");
+      setTimeout(() => {
+        router.push('/login?registered=true');
+      }, 2000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -121,9 +126,16 @@ export default function Register() {
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-in shake duration-500">
                    <div className="w-1 h-1 rounded-full bg-red-500" />
                    <p className="text-[11px] font-bold text-red-600">{error}</p>
+                </div>
+              )}
+
+              {success && (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-500">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                   <p className="text-[11px] font-bold text-emerald-600 tracking-tight">{success}</p>
                 </div>
               )}
 

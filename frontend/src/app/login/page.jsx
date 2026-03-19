@@ -20,6 +20,7 @@ export default function Login() {
   
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function Login() {
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -48,7 +50,10 @@ export default function Login() {
       Cookies.set('access_token', response.data.access);
       Cookies.set('refresh_token', response.data.refresh);
       
-      router.push('/products');
+      setSuccess("Neural Link Established! Accessing Hub...");
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid credentials. Please verify your email and password.');
     } finally {
@@ -59,12 +64,14 @@ export default function Login() {
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       const appVerifier = window.recaptchaVerifier;
       const confirmObj = await signInWithPhoneNumber(auth, `+${phone}`, appVerifier);
       setConfirmationResult(confirmObj);
+      setSuccess("Security Code Dispatched to Device.");
     } catch (err) {
       setError(err.message || 'Verification failed. Please check your phone number format.');
     } finally {
@@ -75,12 +82,15 @@ export default function Login() {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       const result = await confirmationResult.confirm(otp);
-      alert('OTP Verified Successfully!');
-      router.push('/products');
+      setSuccess("Identity Verified! Establishing Pulse...");
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
     } catch (err) {
       setError('The security code entered is incorrect.');
     } finally {
@@ -154,14 +164,14 @@ export default function Login() {
 
               <div className="p-1 bg-gray-50 rounded-2xl flex gap-1">
                  <button 
-                   onClick={() => { setActiveTab('email'); setError(''); }}
+                   onClick={() => { setActiveTab('email'); setError(''); setSuccess(''); }}
                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[11px] transition-all uppercase tracking-widest ${activeTab === 'email' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
                    <Mail className="w-3.5 h-3.5" />
                    E-Mail
                  </button>
                  <button 
-                    onClick={() => { setActiveTab('phone'); setError(''); }}
+                    onClick={() => { setActiveTab('phone'); setError(''); setSuccess(''); }}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[11px] transition-all uppercase tracking-widest ${activeTab === 'phone' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
                    <Phone className="w-3.5 h-3.5" />
@@ -170,9 +180,16 @@ export default function Login() {
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-in shake duration-500">
                    <div className="w-1 h-1 rounded-full bg-red-500" />
                    <p className="text-[11px] font-bold text-red-600">{error}</p>
+                </div>
+              )}
+
+              {success && (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-500">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                   <p className="text-[11px] font-bold text-emerald-600 tracking-tight">{success}</p>
                 </div>
               )}
 

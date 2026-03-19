@@ -37,7 +37,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="bg-gray-50/50 py-16 border-y border-gray-100/50 backdrop-blur-sm relative overflow-hidden">
+    <section className="bg-gray-50/50 py-12 border-y border-gray-100/50 backdrop-blur-sm relative overflow-hidden">
       {/* Decorative SVG Pattern Background */}
       <div className="absolute inset-0 opacity-[0.03] -z-10 pointer-events-none">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -52,35 +52,35 @@ export default function Features() {
 
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
-          <div className="text-center mb-16 space-y-4">
+          <div className="text-center mb-8 space-y-3">
              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-widest shadow-sm">
                 <Cpu className="w-3 h-3" />
                 <span>The NexCart Engine</span>
              </div>
-             <h2 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight">
+             <h2 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
                 Built with <span className="text-emerald-600">Enterprise AI.</span>
              </h2>
-             <p className="text-gray-500 max-w-2xl mx-auto text-lg font-medium leading-[1.8]">
+             <p className="text-gray-500 max-w-lg mx-auto text-base font-medium leading-relaxed">
                 NexCart isn't just a store—it's a smart agent that works for you, 
                 leveraging the latest in AI research to maximize your time.
              </p>
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map((feature, idx) => (
             <ScrollReveal key={idx} delay={idx * 0.1}>
-              <div className="flex flex-col h-full items-start space-y-6 bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:shadow-emerald-100/30 transition-all group duration-500">
-                <div className={`p-5 rounded-2xl bg-${feature.color}-50 text-${feature.color}-600 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-sm ring-1 ring-${feature.color}-100/50`}>
-                  {feature.icon}
+              <div className="flex flex-col h-full items-start space-y-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:shadow-emerald-100/30 transition-all group duration-500">
+                <div className={`p-3 rounded-2xl bg-${feature.color}-50 text-${feature.color}-600 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-sm ring-1 ring-${feature.color}-100/50`}>
+                  {React.cloneElement(feature.icon, { className: 'w-6 h-6' })}
                 </div>
                 
-                <div className="space-y-4">
-                  <span className={`text-[10px] font-bold text-${feature.color}-600 tracking-tighter uppercase px-2 py-0.5 rounded-md bg-${feature.color}-50/50`}>
+                <div className="space-y-3">
+                  <span className={`text-[9px] font-bold text-${feature.color}-600 tracking-tighter uppercase px-2 py-0.5 rounded-md bg-${feature.color}-50/50`}>
                     {feature.tag}
                   </span>
-                  <h3 className="text-lg font-black text-gray-900 leading-snug">{feature.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed font-medium">{feature.desc}</p>
+                  <h3 className="text-base font-black text-gray-900 leading-snug">{feature.title}</h3>
+                  <p className="text-gray-500 text-xs leading-relaxed font-medium">{feature.desc}</p>
                 </div>
               </div>
             </ScrollReveal>

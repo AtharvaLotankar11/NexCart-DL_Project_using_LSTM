@@ -5,15 +5,16 @@ from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import UserProfile
+from .serializers import UserSerializer
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         data = request.data
-        recaptcha_response = data.get('recaptchaToken')
+        recaptcha_response = data.get('recaptcha_token')
         
         # Validate reCAPTCHA
         secret_key = os.environ.get('RECAPTCHA_SECRET_KEY')
@@ -26,11 +27,8 @@ class RegisterView(APIView):
         rs_data = rs.json()
 
         if not rs_data.get('success'):
-            return Response({'error': 'Invalid CAPTCHA'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Validate Passwords
-        if data.get('password') != data.get('confirm_password'):
-            return Response({'error': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"DEBUG: reCAPTCHA Validation Failed. Errors: {rs_data.get('error-codes')}")
+            return Response({'error': f"Invalid CAPTCHA: {rs_data.get('error-codes')}"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if user exists
         if User.objects.filter(email=data.get('email')).exists():
@@ -38,15 +36,16 @@ class RegisterView(APIView):
 
         # Create User
         try:
-            # We use email as the username for NexCart
             user = User.objects.create_user(
                 username=data.get('email'),
                 email=data.get('email'),
                 password=data.get('password'),
-                first_name=data.get('name', '')
+                first_name=data.get('first_name', '')
             )
             # Profile is auto-created by signals or we create it here
             profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.is_email_verified = True
+            profile.save()
             
             # Send Verification Email (Nodemailer equivalent)
             subject = 'Welcome to NexCart - Verify Your Email'
@@ -61,15 +60,39 @@ class RegisterView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import UserSerializer
-
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+    def patch(self, request):
+        user = request.user
+        data = request.data
+        
+        # Update User fields
+        user.first_name = data.get('first_name', user.first_name)
+        user.save()
+        
+        # Update Profile fields
+        profile = user.profile
+        profile.phone_number = data.get('phone_number', profile.phone_number)
+        profile.address = data.get('address', profile.address)
+        
+        # Profile Picture logic
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+            
+        profile.save()
+        
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response({'message': 'Account permanently deactivated from NexCart Grid.'}, status=status.HTTP_204_NO_CONTENT)
 
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]

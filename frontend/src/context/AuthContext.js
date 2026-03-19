@@ -19,13 +19,15 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const response = await axios.get('http://localhost:8000/api/auth/me/', {
+      const response = await axios.get('http://127.0.0.1:8000/api/auth/me/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(response.data);
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      logout();
+      if (error.response?.status === 401) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
