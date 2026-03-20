@@ -18,13 +18,14 @@ def train_nexcart_lstm():
     df = pd.read_csv(data_path)
     
     # 2. Tokenize Products
-    # Ensure product_ids are consistently mapped to indices (0 to num_products-1)
-    # Since we have 90 products (1-90), we map them to 0-89
+    # Ensure product_ids are consistently mapped to indices (1 to num_products)
+    # We reserve 0 for padding
     product_ids = sorted(df['product_id'].unique())
-    id_to_idx = {pid: i for i, pid in enumerate(product_ids)}
-    idx_to_id = {i: pid for i, pid in enumerate(product_ids)}
+    id_to_idx = {pid: i + 1 for i, pid in enumerate(product_ids)}
+    idx_to_id = {i + 1: pid for i, pid in enumerate(product_ids)}
     
     num_products = len(product_ids)
+    vocab_size = num_products + 1 # +1 for padding index 0
     
     # 3. Create Sequences
     sequence_length = 10
@@ -49,13 +50,13 @@ def train_nexcart_lstm():
     
     # 4. Build Stacked LSTM Architecture
     model = Sequential([
-        Embedding(input_dim=num_products, output_dim=64, input_length=sequence_length),
+        Embedding(input_dim=vocab_size, output_dim=64, input_length=sequence_length, mask_zero=True),
         LSTM(128, return_sequences=True),
         Dropout(0.2),
         LSTM(128),
         Dropout(0.2),
         Dense(64, activation='relu'),
-        Dense(num_products, activation='softmax')
+        Dense(vocab_size, activation='softmax')
     ])
     
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -75,6 +76,7 @@ def train_nexcart_lstm():
         'id_to_idx': {int(k): int(v) for k, v in id_to_idx.items()},
         'idx_to_id': {int(k): int(v) for k, v in idx_to_id.items()},
         'num_products': num_products,
+        'vocab_size': vocab_size,
         'sequence_length': sequence_length
     }
     

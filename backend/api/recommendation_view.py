@@ -12,18 +12,49 @@ from .serializers import ProductSerializer
 _model = None
 _mappings = None
 
+class CompatibleEmbedding(tf.keras.layers.Embedding):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
+class CompatibleLSTM(tf.keras.layers.LSTM):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
+class CompatibleDense(tf.keras.layers.Dense):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
 def get_recommendation_engine():
-    global _model, _mappings
-    if _model is None:
+    """Returns (model, mappings) for the recommendation system."""
+    global _model, _mappings # Keep global for lazy loading
+    if _model is None: # Keep lazy loading check
         model_path = os.path.join(os.path.dirname(__file__), '../../ml-model/models/nexcart_lstm.h5')
         mapping_path = os.path.join(os.path.dirname(__file__), '../../ml-model/models/mappings.json')
         
         if os.path.exists(model_path) and os.path.exists(mapping_path):
-            _model = tf.keras.models.load_model(model_path)
-            with open(mapping_path, 'r') as f:
-                _mappings = json.load(f)
+            try:
+                # Load with custom_objects to ignore the quantization_config version mismatch
+                _model = tf.keras.models.load_model(
+                    model_path, 
+                    custom_objects={
+                        'Embedding': CompatibleEmbedding,
+                        'LSTM': CompatibleLSTM,
+                        'Dense': CompatibleDense
+                    }
+                )
+                with open(mapping_path, 'r') as f:
+                    _mappings = json.load(f) # Assign to global _mappings
+            except Exception as e:
+                print(f"FAILED TO LOAD LSTM: {e}")
+                _model = None 
+                _mappings = None 
         else:
             print("ML Artifacts not found. Prediction disabled.")
+            _model = None
+            _mappings = None
     return _model, _mappings
 
 @api_view(['GET'])
@@ -60,7 +91,7 @@ def get_user_recommendations(request):
     
     sequence = [id_to_idx[str(pid)] for pid in valid_ids][-seq_len:]
     if len(sequence) < seq_len:
-        sequence = [0] * (seq_len - len(sequence)) + sequence
+        sequence = [0] * (seq_len - len(sequence)) + sequence # 0 is now dedicated padding
         
     # 3. Predict Top 5 Candidates
     X = np.array([sequence])
@@ -73,7 +104,11 @@ def get_user_recommendations(request):
     
     recommended_ids = []
     for idx in top_indices:
-        pid = int(idx_to_id[str(idx)])
+        idx_str = str(idx)
+        if idx_str not in idx_to_id:
+            continue # Skip padding index or unknown indices
+            
+        pid = int(idx_to_id[idx_str])
         if pid not in visited_ids:
             recommended_ids.append(pid)
         if len(recommended_ids) >= 5:

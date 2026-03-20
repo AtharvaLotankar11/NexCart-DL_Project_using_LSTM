@@ -60,11 +60,31 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['id', 'product', 'quantity', 'price_at_purchase']
 
+from django.utils import timezone
+import datetime
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = ['id', 'user', 'total_amount', 'status', 'created_at', 'items']
+
+    def get_status(self, obj):
+        if obj.status == 'Cancelled':
+            return 'Cancelled'
+        
+        # Calculate time passed since order was created
+        now = timezone.now()
+        time_passed = now - obj.created_at
+        
+        # If order is older than 24 hours, it is Delivered
+        if time_passed > datetime.timedelta(hours=24):
+            return 'Delivered'
+        
+        # For the first 24 hours, show 'Arriving Tomorrow' (matching frontend logic)
+        return 'Arriving Tomorrow'
 
 class RecommendationSerializer(serializers.ModelSerializer):
     recommended_product = ProductSerializer(read_only=True)
