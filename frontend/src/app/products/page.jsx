@@ -11,7 +11,9 @@ import ScrollReveal from '@/components/ScrollReveal';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
-export default function ProductsPage() {
+import { Suspense } from 'react';
+
+function ProductsContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const { user, loading: authLoading } = useAuth();
@@ -101,8 +103,6 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col space-y-8 pb-16 max-w-7xl mx-auto w-full">
-      
-      {/* Page Header */}
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-8 px-4">
         <ScrollReveal direction="left">
           <div className="space-y-4">
@@ -117,7 +117,6 @@ export default function ProductsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Search & Meta */}
         <div className="w-full lg:max-w-md space-y-4">
           <div className="relative group">
              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -146,7 +145,6 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Categories Toolbar */}
       <section className="relative px-4 group">
         <div className="flex items-center justify-between mb-4 md:hidden">
            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Filter Catalog</p>
@@ -178,7 +176,6 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Main Grid */}
       <section className="px-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-40">
@@ -218,15 +215,25 @@ export default function ProductsPage() {
         )}
       </section>
 
-      {/* Subtle Bottom Glow */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-96 bg-emerald-50/20 rounded-[100%] blur-[120px] -z-10 pointer-events-none" />
 
-      {/* Product Detail Modal */}
       <ProductDetailModal 
         product={selectedProduct}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+         <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+       </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }

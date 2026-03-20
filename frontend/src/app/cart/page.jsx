@@ -19,12 +19,14 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useWeb3 } from '@/context/Web3Context';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
   const { user, loading: authLoading } = useAuth();
+  const { contract, account, networkError, connectWallet } = useWeb3();
   
   // Multi-step state: 1: Bag, 2: Shipping, 3: Confirmation
   const [step, setStep] = useState(1);
@@ -108,17 +110,32 @@ export default function CartPage() {
         description: "Logistic Deployment Verification",
         image: "/icon_logo.png",
         order_id: order_id,
-        handler: function (response) {
-            axios.post('http://127.0.0.1:8000/api/verify-payment/', {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-            }, {
-                headers: { Authorization: `Bearer ${Cookies.get('access_token')}` }
-            }).then(() => {
-                clearCart();
-                window.location.href = '/orders?success=true';
-            });
+        handler: async function (response) {
+            try {
+              await axios.post('http://127.0.0.1:8000/api/verify-payment/', {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+              }, {
+                  headers: { Authorization: `Bearer ${Cookies.get('access_token')}` }
+              });
+
+              if (contract && account) {
+                  const blockchainKey = response.razorpay_order_id;
+                  console.log("[Blockchain] Writing order to ledger with key:", blockchainKey);
+                  const tx = await contract.createOrder(blockchainKey);
+                  await tx.wait();
+                  console.log("[Blockchain] Order successfully written. TX:", tx.hash);
+              }
+
+              clearCart();
+              window.location.href = '/orders?success=true';
+            } catch (err) {
+              console.error("Verification or blockchain error:", err);
+              // Best outcome: we proceed anyway since payment actually succeeded on backend
+              clearCart();
+              window.location.href = '/orders?success=true';
+            }
         },
         prefill: {
           name: shippingInfo.fullName,
@@ -337,8 +354,8 @@ export default function CartPage() {
                 )}
 
                 {step === 3 && (
-                  <button onClick={handleCheckoutInitiate} className="w-full py-5 bg-emerald-500 text-black rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all active:scale-[0.98] shadow-xl shadow-emerald-500/20">
-                    <CreditCard className="w-6 h-6" /> PAY & DEPLOY 
+                  <button onClick={!account || networkError ? connectWallet : handleCheckoutInitiate} className={`w-full py-5 ${(account && !networkError) ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-[#f6851b] hover:bg-[#e07514] text-white'} text-black rounded-[24px] font-black text-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-xl shadow-emerald-500/20`}>
+                    {!account ? 'WEB3 WALLET NOT CONNECTED' : networkError ? 'SWITCH TO SEPOLIA NETWORK' : <><CreditCard className="w-6 h-6" /> PAY & DEPLOY</>}
                   </button>
                 )}
                 

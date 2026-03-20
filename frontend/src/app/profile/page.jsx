@@ -32,6 +32,7 @@ import {
   Legend
 } from 'recharts';
 import { useAuth } from '@/context/AuthContext';
+import { useWeb3 } from '@/context/Web3Context';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -39,6 +40,7 @@ const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function ProfilePage() {
   const { user, logout, fetchUser } = useAuth();
+  const { account, connectWallet, disconnectWallet, networkError } = useWeb3();
   const [analytics, setAnalytics] = useState({ timeline: [], categories: [] });
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -183,6 +185,27 @@ export default function ProfilePage() {
                <button onClick={() => setIsEditing(!isEditing)} className="mt-10 w-full py-4 bg-gray-900 text-white rounded-2xl font-black shadow-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
                   {isEditing ? 'Cancel Edit' : 'Edit Intelligence'}
                </button>
+
+               <div className="mt-8 pt-8 border-t border-gray-50 flex flex-col gap-4 text-center">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">Decentralized Logistics Protocol</div>
+                  {account ? (
+                      <div className="space-y-4">
+                        <div className="inline-flex flex-col items-center bg-emerald-50 text-emerald-700 px-4 py-3 rounded-2xl border border-emerald-100 w-full">
+                           <span className="text-[10px] uppercase font-black tracking-widest mb-1">Connected Wallet (Sepolia)</span>
+                           <span className="text-xs font-bold font-mono truncate w-full" title={account}>{account}</span>
+                        </div>
+                        <button onClick={disconnectWallet} className="text-[10px] font-black tracking-widest uppercase text-red-500 hover:text-red-700">Disconnect Wallet</button>
+                      </div>
+                  ) : (
+                      <div className="space-y-2">
+                        <button onClick={connectWallet} className="w-full py-3 bg-[#f6851b] hover:bg-[#e07514] text-white rounded-2xl font-black text-xs tracking-widest transition-all shadow-xl shadow-orange-500/20 flex items-center justify-center gap-2">
+                           <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" className="w-5 h-5"/>
+                           CONNECT METAMASK
+                        </button>
+                        {networkError && <p className="text-xs text-red-500 font-bold">{networkError}</p>}
+                      </div>
+                  )}
+               </div>
             </div>
          </div>
 

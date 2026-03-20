@@ -69,7 +69,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'total_amount', 'status', 'created_at', 'items']
+        fields = ['id', 'user', 'total_amount', 'status', 'created_at', 'items', 'razorpay_order_id']
 
     def get_status(self, obj):
         if obj.status == 'Cancelled':

@@ -10,6 +10,7 @@ NexCart is a **full-stack AI-integrated web application** combining:
 - Scalable backend APIs
 - Relational database
 - Deep Learning model (LSTM)
+- Blockchain Integration (Solidity)
 - External service integrations
 
 The stack is chosen to ensure:
@@ -154,7 +155,38 @@ Option 2 (Recommended):
 
 ---
 
-## 💳 6. Payment Integration
+## ⚙️ 6. Blockchain Layer (Smart Ledger)
+
+### ⛓️ Language: Solidity
+
+**Purpose:**
+- Developing Smart Contracts for order status management.
+
+---
+
+### 🦊 Crypto Wallet: MetaMask
+
+**Used for:**
+- User identity on the blockchain.
+- Signing transactions for order verification.
+
+---
+
+### 🌉 Library: Ethers.js OR Web3.js
+
+**Used for:**
+- Bridging frontend (Next.js) with the Ethereum network.
+
+---
+
+### 🏢 Local Network: Hardhat OR Ganache
+
+**Used for:**
+- Deploying and testing smart contracts in a local environment.
+
+---
+
+## 💳 7. Payment Integration
 
 ### Razorpay API (Test Mode)
 

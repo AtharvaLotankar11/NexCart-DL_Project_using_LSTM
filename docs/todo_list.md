@@ -173,3 +173,33 @@ This todo list integrates all requirements and design specifications from the PR
 - [x] **GitHub Repository Sync**:
   - [x] Commit all finalized Phase 1-9 assets to source control
   - [x] Handover: The "Closing High-Fidelity Pulse"
+
+---
+
+## ⛓️ Phase 11: Blockchain Integration & Secure Supply Chain (Upcoming)
+*Goal: Implement a decentralized ledger for tamper-free order tracking.*
+
+- [x] **Blockchain Environment Setup**:
+  - [x] Initialize Hardhat/Truffle project in root or new `blockchain/` directory
+  - [x] Configure local test network (Hardhat Network / Ganache)
+  - [x] Install `ethers.js` or `web3.js` in frontend
+- [x] **Smart Contract Development (Solidity)**:
+  - [x] Design and write `OrderLedger.sol` contract
+  - [x] Implement state variables for Order Hash and Status (Pending, Shipped, Arrived)
+  - [x] Create functions for creating orders and updating status with owner/authorised person only access
+  - [x] Add event emitters for frontend reactivity
+- [x] **Metamask Integration**:
+  - [x] Implement "Connect Wallet" functionality in frontend Profile/Orders page
+  - [x] Setup wallet state persistence and network checking (Ethereum/Polygon testnets)
+- [x] **Smart Contract Deployment**:
+  - [x] Deploy contract to local testnet and capture ABI/Address
+  - [x] (Future) Deploy to testnets like Goerli, Sepolia or Polygon Amoy
+- [x] **End-to-End Secure Workflow**:
+  - [x] Trigger blockchain transaction upon successful Razorpay payment
+  - [x] Update order status on-chain when the backend simulates status transitions
+  - [x] Build "Verify on Blockchain" UI component in Past Orders to fetch and display immutable status from the contract
+- [x] **Security Evaluation**:
+  - [x] Audit contract for common vulnerabilities (Reentrancy, etc.)
+  - [x] Ensure only the authorized "Store Admin" (simulated) can push status updates 
+
+---

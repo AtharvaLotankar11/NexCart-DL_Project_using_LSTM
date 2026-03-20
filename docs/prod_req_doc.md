@@ -18,6 +18,7 @@ The system replicates a real-world e-commerce workflow including:
 - Payment simulation
 - Behavioral analytics
 - AI-driven recommendation engine
+- **Blockchain-secured Order Lifecycle (Smart Ledger)**
 
 ---
 
@@ -324,7 +325,25 @@ Example:
 
 ---
 
-## 6.6 Profile Page
+## 6.6 Blockchain Integration (Smart Ledger)
+
+### Purpose:
+- Ensure the journey from **Purchase to Arrival** is tamper-free and secured.
+- Provide a transparent, immutable record of order status changes.
+
+### Components:
+- **Smart Contract (Solidity):** Manages the order state on the blockchain.
+- **Wallet Integration (Metamask):** Allows users to sign/verify transitions or view decentralized records.
+- **Decentralized Ledger:** Stores hashes of order transitions.
+
+### Blockchain Workflow:
+1. **Order Initiation:** When a user pays via Razorpay, a record is simultaneously requested for the Smart Ledger.
+2. **Status Updates:** Each transition (Order Placed → Shipped → Arrived) is recorded as a transaction on the blockchain.
+3. **Tamper-Free Verification:** User can verify their order's journey via the dApp interface integrated into the Orders page.
+
+---
+
+## 6.7 Profile Page
 
 ---
 

@@ -16,3 +16,6 @@ backend/media/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Blockchain
+blockchain/.env
