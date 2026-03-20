@@ -9,8 +9,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import UserProfile, OTPCode
-from .serializers import UserSerializer
+from .serializers import UserSerializer, CustomTokenObtainPairSerializer
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # ─── USER REGISTRATION & PROFILE ──────────────────────────────────────────────
 
@@ -49,22 +53,35 @@ class RegisterView(APIView):
             )
             
             # Profile is auto-created by signals.py
-            # We fetch it to set any initial flags if needed
             profile = user.profile
-            # Note: is_email_verified should probably be False until verified, 
-            # but keeping existing logic if intended for immediate trial access.
             profile.is_email_verified = False  
             profile.save()
             
-            # Send Verification Email
-            subject = 'Welcome to NexCart - Verify Your Email'
-            message = f'Hi {user.first_name},\n\nThank you for registering at NexCart. Please verify your email by clicking the link: http://localhost:3000/verify-email?token={user.id}'
+            # Delete any previous OTPs for this email to avoid confusion
+            OTPCode.objects.filter(email=user.email).delete()
+
+            # Generate a fresh 6-digit OTP
+            code = f"{random.randint(100000, 999999)}"
+            OTPCode.objects.create(email=user.email, code=code)
+
+            # Send OTP Verification Email
+            subject = 'Welcome to NexCart - Security Verification Code'
+            message = (
+                f'Hi {user.first_name},\n\n'
+                f'Thank you for registering at NexCart. Use the 6-digit verification code below to authorize your business identity:\n\n'
+                f'  {code}\n\n'
+                f'This code expires in 10 minutes. Do not share it.\n'
+                f'Initializing NexCart Access...'
+            )
             from_email = os.environ.get('EMAIL_HOST_USER')
             recipient_list = [user.email]
             
-            send_mail(subject, message, from_email, recipient_list, fail_silently=True)
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
 
-            return Response({'message': 'Registration successful. Please verify your email.'}, status=status.HTTP_201_CREATED)
+            return Response({
+                'message': 'Identity Registered! Security code dispatched to your mail.',
+                'email': user.email
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -109,15 +126,33 @@ class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        user_id = request.data.get('token')
+        email = request.data.get('email', '').strip().lower()
+        code = request.data.get('code', '').strip()
+
+        if not email or not code:
+            return Response({'error': 'Email and security code are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            user = User.objects.get(id=user_id)
+            # Check latest OTP for this email
+            otp_obj = OTPCode.objects.filter(email=email, code=code).latest('created_at')
+            
+            if not otp_obj.is_valid():
+                otp_obj.delete()
+                return Response({'error': 'Security code has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Valid code - verify user
+            user = User.objects.get(email=email)
             profile = user.profile
             profile.is_email_verified = True
             profile.save()
-            return Response({'message': 'Email successfully verified!'})
-        except User.DoesNotExist:
-            return Response({'error': 'Invalid verification token'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Clean up used OTP
+            otp_obj.delete()
+
+            return Response({'message': 'Identity Successfully Verified! Authorized to access NexCart.'}, status=status.HTTP_200_OK)
+
+        except (OTPCode.DoesNotExist, User.DoesNotExist):
+            return Response({'error': 'Invalid verification code or account not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ─── EMAIL OTP & IDENTITY RECOVERY ───────────────────────────────────────────
@@ -153,7 +188,7 @@ class SendOTPView(APIView):
                 message=(
                     f'Your NexCart verification code is:\n\n'
                     f'  {code}\n\n'
-                    f'Use this code to authorize your login or recover your workspace identity.\n'
+                    f'Use this code to authorize your login, verify your identity, or recover your workspace.\n'
                     f'This code expires in 10 minutes. Do not share it.'
                 ),
                 from_email=from_email,
@@ -192,6 +227,11 @@ class VerifyOTPView(APIView):
 
         try:
             user = User.objects.get(email=email)
+            # Auto-verify email if they logged in via OTP
+            profile = user.profile
+            if not profile.is_email_verified:
+                profile.is_email_verified = True
+                profile.save()
         except User.DoesNotExist:
             return Response({'error': 'Associated identity not found.'}, status=status.HTTP_404_NOT_FOUND)
 

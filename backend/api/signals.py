@@ -11,4 +11,8 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    # Ensure profile and cart exist even for users created without them
+    UserProfile.objects.get_or_create(user=instance)
+    Cart.objects.get_or_create(user=instance)
+    if hasattr(instance, 'profile'):
+        instance.profile.save()

@@ -83,8 +83,8 @@ def create_razorpay_order(request):
             razorpay_order_id=razorpay_order['id']
         )
         
-        # Add items from cart to OrderItem
-        cart = Cart.objects.get(user=request.user)
+        # Add items from cart to OrderItem (Ensure cart exists)
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         for item in cart.items.all():
             OrderItem.objects.create(
                 order=order,

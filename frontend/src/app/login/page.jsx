@@ -25,6 +25,15 @@ export default function Login() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('verified') === 'true') {
+      setSuccess('Identity Authenticated! Access to NexCart Grid Granted.');
+    } else if (params.get('registered') === 'true') {
+      setSuccess('Identity Protocol Initiated. Check your mail for the security code.');
+    }
+  }, []);
+
   const switchTab = (tab) => {
     setActiveTab(tab);
     setError('');

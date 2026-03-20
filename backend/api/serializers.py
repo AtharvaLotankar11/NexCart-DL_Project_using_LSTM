@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, Category, Product, Cart, CartItem, Order, OrderItem, Recommendation
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -12,6 +14,16 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Check if email is verified
+        if not self.user.profile.is_email_verified:
+            raise serializers.ValidationError({
+                "detail": "Account verification required. Please check your email for the security code."
+            })
+        return data
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

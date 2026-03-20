@@ -56,9 +56,9 @@ export default function Register() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      setSuccess("Identity Protocol Registered! Initializing NexCart Access...");
+      setSuccess("Identity Protocol Registered! Security Code Dispatched...");
       setTimeout(() => {
-        router.push('/login?registered=true');
+        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       }, 2000);
     } catch (err) {
       setError(err.message);
