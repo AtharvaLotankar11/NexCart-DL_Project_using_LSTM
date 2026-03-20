@@ -5,7 +5,7 @@ from .models import UserProfile, Category, Product, Cart, CartItem, Order, Order
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'phone_number', 'address', 'profile_picture', 'is_email_verified']
+        fields = ['id', 'phone_number', 'address', 'city', 'pincode', 'profile_picture', 'is_email_verified']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)

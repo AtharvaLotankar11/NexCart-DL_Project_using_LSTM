@@ -8,6 +8,7 @@ import {
   Truck, 
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   TrendingUp,
   Sparkles,
   CheckCircle,
@@ -51,31 +52,62 @@ function RecommendationSection({ ordersCount }) {
     }
   }, [ordersCount]);
 
-  if (ordersCount < 5 || recommendations.length === 0) return null;
+   const scrollRef = React.useRef(null);
 
-  return (
-    <motion.section 
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className="mt-8 mb-16"
-    >
-       <div className="flex items-center justify-between mb-8 px-2">
-          <div className="space-y-1">
-             <motion.div 
-               animate={{ scale: [1, 1.05, 1] }}
-               transition={{ repeat: Infinity, duration: 2 }}
-               className="flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full w-fit"
-             >
-                <Zap className="w-3 h-3 fill-current" />
-                <span className="text-[10px] font-black uppercase tracking-widest">LSTM ACTIVATED</span>
-             </motion.div>
-             <h2 className="text-3xl font-black text-gray-900 tracking-tighter">Recommended <br/><span className="text-emerald-500">For You.</span></h2>
-          </div>
-          <Link href="/products" className="text-sm font-bold text-gray-300 hover:text-emerald-500 transition-colors uppercase tracking-widest">See All Patterns</Link>
-       </div>
+   const scroll = (direction) => {
+     if (scrollRef.current) {
+       const { scrollLeft, clientWidth } = scrollRef.current;
+       const scrollTo = direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+       scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+     }
+   };
 
-       <div className="flex gap-6 overflow-x-auto no-scrollbar pb-8 px-2 snap-x">
+   if (ordersCount < 5 || recommendations.length === 0) return null;
+
+   return (
+     <motion.section 
+       initial={{ opacity: 0, y: 30 }}
+       animate={{ opacity: 1, y: 0 }}
+       transition={{ duration: 0.8, ease: "easeOut" }}
+       className="mt-8 mb-16 relative group/section"
+     >
+        <div className="flex items-center justify-between mb-8 px-2">
+           <div className="space-y-1">
+              <motion.div 
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full w-fit"
+              >
+                 <Zap className="w-3 h-3 fill-current" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">LSTM ACTIVATED</span>
+              </motion.div>
+              <h2 className="text-3xl font-black text-gray-900 tracking-tighter">Recommended <br/><span className="text-emerald-500">For You.</span></h2>
+           </div>
+           <div className="flex items-center gap-5">
+              <div className="hidden md:flex items-center gap-3 pr-2 border-r border-gray-100">
+                 <button 
+                   onClick={() => scroll('left')}
+                   className="p-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-600 hover:border-emerald-200 hover:bg-white shadow-sm hover:shadow-md transition-all active:scale-90 group/btn"
+                   aria-label="Scroll Left"
+                 >
+                    <ChevronLeft className="w-5 h-5 group-hover/btn:-translate-x-0.5 transition-transform" />
+                 </button>
+                 <button 
+                   onClick={() => scroll('right')}
+                   className="p-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-600 hover:border-emerald-200 hover:bg-white shadow-sm hover:shadow-md transition-all active:scale-90 group/btn"
+                   aria-label="Scroll Right"
+                 >
+                    <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" />
+                 </button>
+              </div>
+              <Link href="/products" className="text-[10px] font-black text-gray-400 hover:text-emerald-500 transition-colors uppercase tracking-[0.2em]">See All Patterns</Link>
+           </div>
+        </div>
+
+        <div 
+          ref={scrollRef}
+          className="flex gap-6 overflow-x-auto no-scrollbar pb-8 px-2 snap-x"
+        >
           <AnimatePresence>
             {recommendations.map((product, idx) => (
               <motion.div 

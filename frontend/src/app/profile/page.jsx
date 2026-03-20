@@ -44,7 +44,9 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     first_name: '',
     phone_number: '',
-    address: ''
+    address: '',
+    city: '',
+    pincode: ''
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
@@ -55,7 +57,9 @@ export default function ProfilePage() {
       setFormData({
         first_name: user.first_name || '',
         phone_number: user.profile?.phone_number || '',
-        address: user.profile?.address || ''
+        address: user.profile?.address || '',
+        city: user.profile?.city || '',
+        pincode: user.profile?.pincode || ''
       });
       fetchAnalytics();
     }
@@ -78,6 +82,8 @@ export default function ProfilePage() {
       data.append('first_name', formData.first_name);
       data.append('phone_number', formData.phone_number);
       data.append('address', formData.address);
+      data.append('city', formData.city);
+      data.append('pincode', formData.pincode);
       if (profileImage) {
         data.append('profile_picture', profileImage);
       }
@@ -199,6 +205,17 @@ export default function ProfilePage() {
             <div className="space-y-2 group">
                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-3 mb-1 block group-focus-within:text-emerald-600 transition-colors">Deployment Destination</label>
                <textarea readOnly={!isEditing} className={`w-full p-4 border rounded-2xl font-bold transition-all min-h-[120px] ${isEditing ? 'bg-white border-emerald-500 ring-4 ring-emerald-500/5' : 'bg-gray-50 border-gray-100'}`} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+               <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-3 mb-1 block group-focus-within:text-emerald-600 transition-colors">Logistics City</label>
+                  <input readOnly={!isEditing} type="text" className={`w-full p-4 border rounded-2xl font-bold transition-all ${isEditing ? 'bg-white border-emerald-500 ring-4 ring-emerald-500/5' : 'bg-gray-50 border-gray-100'}`} value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+               </div>
+               <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-3 mb-1 block group-focus-within:text-emerald-600 transition-colors">Postal Pulse (PIN)</label>
+                  <input readOnly={!isEditing} type="text" className={`w-full p-4 border rounded-2xl font-bold transition-all ${isEditing ? 'bg-white border-emerald-500 ring-4 ring-emerald-500/5' : 'bg-gray-50 border-gray-100'}`} value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+               </div>
             </div>
 
             {isEditing && (

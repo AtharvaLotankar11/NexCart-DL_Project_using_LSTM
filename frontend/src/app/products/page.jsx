@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { ShieldAlert, Search, Filter, ShoppingBag, Loader2, Sparkles, X } from 'lucide-react';
+import { ShieldAlert, Search, Filter, ShoppingBag, Loader2, Sparkles, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import ScrollReveal from '@/components/ScrollReveal';
@@ -50,6 +50,16 @@ export default function ProductsPage() {
     };
     fetchData();
   }, []);
+
+  const categoryScrollRef = React.useRef(null);
+
+  const scrollCategories = (direction) => {
+    if (categoryScrollRef.current) {
+      const { scrollLeft, clientWidth } = categoryScrollRef.current;
+      const scrollTo = direction === 'left' ? scrollLeft - clientWidth / 2 : scrollLeft + clientWidth / 2;
+      categoryScrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+    }
+  };
 
   if (authLoading) {
     return (
@@ -137,7 +147,19 @@ export default function ProductsPage() {
       </section>
 
       {/* Categories Toolbar */}
-      <section className="px-4 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-3">
+      <section className="relative px-4 group">
+        <div className="flex items-center justify-between mb-4 md:hidden">
+           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Filter Catalog</p>
+           <div className="flex gap-2">
+              <button onClick={() => scrollCategories('left')} className="p-2 bg-gray-50 rounded-lg text-gray-400 transition-all active:scale-90"><ChevronLeft className="w-4 h-4" /></button>
+              <button onClick={() => scrollCategories('right')} className="p-2 bg-gray-50 rounded-lg text-gray-400 transition-all active:scale-90"><ChevronRight className="w-4 h-4" /></button>
+           </div>
+        </div>
+        
+        <div 
+          ref={categoryScrollRef}
+          className="overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-3"
+        >
         <button 
           onClick={() => setSelectedCategory('All')}
           className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${selectedCategory === 'All' ? 'bg-emerald-600 text-white' : 'bg-white border border-gray-100 text-gray-500 hover:border-emerald-300'}`}
@@ -153,6 +175,7 @@ export default function ProductsPage() {
             {cat.name}
           </button>
         ))}
+        </div>
       </section>
 
       {/* Main Grid */}

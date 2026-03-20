@@ -88,6 +88,8 @@ class MeView(APIView):
         profile = user.profile
         profile.phone_number = data.get('phone_number', profile.phone_number)
         profile.address = data.get('address', profile.address)
+        profile.city = data.get('city', profile.city)
+        profile.pincode = data.get('pincode', profile.pincode)
         
         # Profile Picture logic
         if 'profile_picture' in request.FILES:

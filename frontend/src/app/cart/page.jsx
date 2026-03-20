@@ -32,8 +32,8 @@ export default function CartPage() {
     fullName: user?.first_name || '',
     phone: user?.profile?.phone_number || '',
     address: user?.profile?.address || '',
-    city: '',
-    zip: ''
+    city: user?.profile?.city || '',
+    zip: user?.profile?.pincode || ''
   });
 
   // Automatically synchronize logistics telemetry when identity core loads
@@ -43,7 +43,9 @@ export default function CartPage() {
         ...prev,
         fullName: user.first_name || '',
         phone: user.profile?.phone_number || '',
-        address: user.profile?.address || ''
+        address: user.profile?.address || '',
+        city: user.profile?.city || '',
+        zip: user.profile?.pincode || ''
       }));
     }
   }, [user]);
