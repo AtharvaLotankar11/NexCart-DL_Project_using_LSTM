@@ -23,7 +23,56 @@ Developed entirely by **Atharva Lotankar**, NexCart AI stands as a showcase of c
 
 ---
 
+## 🚀 Getting Started (Post-Clone Commands)
+
+Follow these steps immediately after cloning to initialize the NexCart ecosystem. These commands are tailored for **Windows environments**.
+
+> [!IMPORTANT]
+> **Prerequisites:** Ensure you have **Python 3.10+**, **Node.js (v18+)**, and **PostgreSQL** installed and running on your system.
+
+### 1. Initialize Environment Templates
+
+Duplicate the template files into active configurations:
+```bash
+# From the root directory:
+copy frontend\.env.example frontend\.env.local
+copy backend\.env.example backend\.env
+copy blockchain\.env.example blockchain\.env
+```
+> [!NOTE]
+> Update the generated `.env` files with your own API keys (Razorpay, Alchemy, etc.) before running the servers.
+
+### 2. Backend Neural Hub (Django)
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+# --- Use your DB client to create 'nexcart_db' before migrating ---
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py run_seed.bat  # Optional: Seed initial marketplace data
+python manage.py runserver
+```
+
+
+### 3. Interactive Matrix (Next.js)
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+### 4. Ledger Infrastructure (Hardhat)
+```bash
+cd ../blockchain
+npm install
+npx hardhat compile
+```
+
+---
+
 ## 🌌 System Architecture
+
 
 The NexCart infrastructure elegantly delegates responsibilities across four primary quadrants:
 
