@@ -222,7 +222,7 @@ function RecommendationSection({ ordersCount }) {
 }
 
 function OrderBlockchainStatus({ orderId }) {
-  const { contract } = useWeb3();
+  const { contract, isMetaMaskLocked, connectWallet } = useWeb3();
   const [chainData, setChainData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -254,7 +254,17 @@ function OrderBlockchainStatus({ orderId }) {
     }
   };
 
-  if (!contract) return <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-2 py-1 rounded mt-4 border border-gray-100">Wallet Unlinked</span>;
+  if (isMetaMaskLocked || !contract) {
+    return (
+      <button 
+        onClick={connectWallet}
+        className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-gray-100 shadow-sm mt-4"
+      >
+        <Zap className="w-3 h-3" />
+        Connect with MetaMask
+      </button>
+    );
+  }
 
   return (
     <div className="flex flex-col items-start lg:items-end gap-2 mt-4">

@@ -62,6 +62,20 @@ export const Web3Provider = ({ children }) => {
   const [contract, setContract] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [networkError, setNetworkError] = useState(null);
+  const [isMetaMaskLocked, setIsMetaMaskLocked] = useState(false);
+
+  // Global Rejection Handler - Failsafe for Extension Glitches
+  useEffect(() => {
+    const handleRejection = (event) => {
+      if (event.reason?.message?.includes("MetaMask") || event.reason?.stack?.includes("nkbihfbeogaeaoehlefnkodbefgpgknn")) {
+        console.warn("Caught MetaMask background rejection. Handling gracefully...");
+        setIsMetaMaskLocked(true);
+        event.preventDefault(); // Silence the console error
+      }
+    };
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => window.removeEventListener("unhandledrejection", handleRejection);
+  }, []);
 
   // Initialize connection
   const initWeb3 = async () => {
@@ -71,8 +85,10 @@ export const Web3Provider = ({ children }) => {
         window.ethereum.on("accountsChanged", (accounts) => {
           if (accounts.length > 0) {
             setAccount(accounts[0]);
+            setIsMetaMaskLocked(false);
           } else {
             setAccount(null);
+            setIsMetaMaskLocked(true);
           }
         });
 
@@ -82,7 +98,7 @@ export const Web3Provider = ({ children }) => {
         });
 
       } catch (error) {
-        console.error("Web3 initialization failed", error);
+        console.warn("Web3 silence init");
       }
     }
   };
@@ -90,23 +106,25 @@ export const Web3Provider = ({ children }) => {
   useEffect(() => {
     initWeb3();
 
-    // Check if wallet is already connected
     const checkConnection = async () => {
       if (typeof window !== "undefined" && window.ethereum) {
         try {
           const accounts = await window.ethereum.request({ method: "eth_accounts" });
           if (accounts.length > 0) {
             setAccount(accounts[0]);
-
+            setIsMetaMaskLocked(false);
             const chainId = await window.ethereum.request({ method: "eth_chainId" });
             if (chainId === SEPOLIA_CHAIN_ID) {
               setupContract();
             } else {
               setNetworkError("Please switch MetaMask to Sepolia network.");
             }
+          } else {
+            // Extension is present but no accounts authorized (likely locked)
+            setIsMetaMaskLocked(true);
           }
         } catch (error) {
-          console.error("Could not check connection status", error);
+           console.warn("Check connection handled");
         }
       }
     };
@@ -129,6 +147,7 @@ export const Web3Provider = ({ children }) => {
 
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
         setAccount(accounts[0]);
+        setIsMetaMaskLocked(false);
         setupContract();
       } catch (error) {
         console.error("User rejecting connection or error", error);
@@ -142,10 +161,14 @@ export const Web3Provider = ({ children }) => {
 
   const setupContract = async () => {
     if (typeof window !== "undefined" && window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const orderContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      setContract(orderContract);
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const orderContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        setContract(orderContract);
+      } catch (e) {
+        console.warn("Contract setup on deck");
+      }
     }
   };
 
@@ -161,6 +184,7 @@ export const Web3Provider = ({ children }) => {
         contract,
         isConnecting,
         networkError,
+        isMetaMaskLocked,
         connectWallet,
         disconnectWallet,
       }}
