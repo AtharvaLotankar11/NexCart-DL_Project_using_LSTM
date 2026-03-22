@@ -29,14 +29,21 @@ class CompatibleDense(tf.keras.layers.Dense):
 
 def get_recommendation_engine():
     """Returns (model, mappings) for the recommendation system."""
-    global _model, _mappings # Keep global for lazy loading
-    if _model is None: # Keep lazy loading check
+    global _model, _mappings
+    mapping_path = os.path.join(os.path.dirname(__file__), '../../ml-model/models/mappings.json')
+    
+    # Always re-read mappings for live data sync
+    if os.path.exists(mapping_path):
+        try:
+            with open(mapping_path, 'r') as f:
+                _mappings = json.load(f)
+        except Exception:
+            pass
+
+    if _model is None: # Lazy load model (stayed the same)
         model_path = os.path.join(os.path.dirname(__file__), '../../ml-model/models/nexcart_lstm.h5')
-        mapping_path = os.path.join(os.path.dirname(__file__), '../../ml-model/models/mappings.json')
-        
-        if os.path.exists(model_path) and os.path.exists(mapping_path):
+        if os.path.exists(model_path):
             try:
-                # Load with custom_objects to ignore the quantization_config version mismatch
                 _model = tf.keras.models.load_model(
                     model_path, 
                     custom_objects={
@@ -45,16 +52,8 @@ def get_recommendation_engine():
                         'Dense': CompatibleDense
                     }
                 )
-                with open(mapping_path, 'r') as f:
-                    _mappings = json.load(f) # Assign to global _mappings
-            except Exception as e:
-                print(f"FAILED TO LOAD LSTM: {e}")
-                _model = None 
-                _mappings = None 
-        else:
-            print("ML Artifacts not found. Prediction disabled.")
-            _model = None
-            _mappings = None
+            except Exception:
+                _model = None
     return _model, _mappings
 
 @api_view(['GET'])
@@ -63,7 +62,6 @@ def get_user_recommendations(request):
     model, mappings = get_recommendation_engine()
     
     # 1. Fetch User Interaction History (Real orders)
-    # We'll get unique product IDs the user has bought
     user_orders = OrderItem.objects.filter(order__user=request.user).order_by('order__created_at')
     
     if user_orders.count() < 5:
@@ -72,50 +70,69 @@ def get_user_recommendations(request):
     if not model or not mappings:
         return Response({'error': 'Intelligence hub offline'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    # 2. Preprocess History for LSTM
-    # We take the last 10 products. If less, we pad.
-    product_ids_bought = list(user_orders.values_list('product_id', flat=True))
+    # 2. Identify favorite categories for boosting (Logical Bridge)
+    from django.db.models import Count, Case, When
+    fav_cat_data = user_orders.values('product__category__name')\
+                                .annotate(count=Count('product__category__name'))\
+                                .order_by('-count')
     
-    # Filter only those that exist in our mapping
-    valid_ids = [pid for pid in product_ids_bought if str(pid) in mappings['id_to_idx']]
-    
-    if not valid_ids:
-        # Fallback to random popular items
-        fallback = Product.objects.all()[:5]
-        return Response(ProductSerializer(fallback, many=True).data)
+    fav_categories = [item['product__category__name'] for item in fav_cat_data]
+    print(f"[AI Debug] User {request.user.id} interests (sorted): {fav_categories}")
 
-    # Map to indices and pad
+    # 3. Preprocess History for LSTM
+    product_ids_bought = list(user_orders.values_list('product_id', flat=True))
+    visited_ids = set(product_ids_bought)
+    
+    # Map raw IDs to logical indices for the model
+    # We use a best-effort mapping to avoid ID drift issues
     id_to_idx = mappings['id_to_idx']
     idx_to_id = mappings['idx_to_id']
     seq_len = mappings['sequence_length']
     
-    sequence = [id_to_idx[str(pid)] for pid in valid_ids][-seq_len:]
+    sequence = [id_to_idx.get(str(pid), 0) for pid in product_ids_bought][-seq_len:]
     if len(sequence) < seq_len:
-        sequence = [0] * (seq_len - len(sequence)) + sequence # 0 is now dedicated padding
+        sequence = [0] * (seq_len - len(sequence)) + sequence 
         
-    # 3. Predict Top 5 Candidates
+    # 4. Predict Top Candidates
     X = np.array([sequence])
     predictions = model.predict(X, verbose=0)[0]
+    top_indices = np.argsort(predictions)[::-1] 
     
-    # Sort and filter already visited products
-    # Requirement: "Recommendations must be previously unvisited items"
-    top_indices = np.argsort(predictions)[::-1] # High to low probability
-    visited_ids = set(product_ids_bought)
-    
+    # 5. Build Result List with Preference Boosting
     recommended_ids = []
+    secondary_ids = []
+    
+    # Collect candidates from model
     for idx in top_indices:
         idx_str = str(idx)
-        if idx_str not in idx_to_id:
-            continue # Skip padding index or unknown indices
-            
+        if idx_str not in idx_to_id: continue
         pid = int(idx_to_id[idx_str])
-        if pid not in visited_ids:
-            recommended_ids.append(pid)
-        if len(recommended_ids) >= 5:
-            break
+        if pid in visited_ids: continue
+        
+        try:
+            p_obj = Product.objects.get(id=pid)
+            # If product belongs to any of user's top categories, boost it
+            if p_obj.category.name in fav_categories:
+                recommended_ids.append(pid)
+            else:
+                secondary_ids.append(pid)
+        except Exception:
+            continue
             
-    # 4. Return Serialized Products
-    recommended_products = Product.objects.filter(id__in=recommended_ids)
-    serializer = ProductSerializer(recommended_products, many=True)
+        if len(recommended_ids) + len(secondary_ids) >= 15: break
+
+    # Blend: Boosted items first, then others
+    final_ids = (recommended_ids + secondary_ids)[:5]
+    print(f"[AI Debug] Final IDs pushed to frontend: {final_ids}")
+            
+    # 6. Preserve original recommendation order (Logic Sort)
+    if not final_ids:
+         # Hard fallback into same categories if LSTM completely fails
+         fallback = Product.objects.filter(category__name__in=fav_categories).exclude(id__in=visited_ids)[:5]
+         return Response(ProductSerializer(fallback, many=True).data)
+
+    preserved_order = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(final_ids)])
+    recommended_products = Product.objects.filter(id__in=final_ids).order_by(preserved_order)
     
+    serializer = ProductSerializer(recommended_products, many=True)
     return Response(serializer.data)
