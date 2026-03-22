@@ -66,6 +66,34 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
 
+    def update_realtime_status(self):
+        """
+        Dynamically calculates and updates the database status based on time passed.
+        Ensures the DB field reflects reality, triggering signals for Blockchain sync.
+        """
+        from django.utils import timezone
+        import datetime
+        
+        if self.status == 'Cancelled':
+            return self.status
+            
+        now = timezone.now()
+        time_passed = now - self.created_at
+        
+        new_status = self.status
+        if time_passed > datetime.timedelta(hours=24):
+            new_status = 'Delivered'
+        elif time_passed > datetime.timedelta(minutes=1): # Just to show it's working
+            if self.status == 'Pending':
+                 new_status = 'Arriving Tomorrow'
+
+        if self.status != new_status:
+            self.status = new_status
+            self.save(update_fields=['status'])
+            print(f"[Model Logic] Order {self.id} status synced to: {self.status}")
+        
+        return self.status
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

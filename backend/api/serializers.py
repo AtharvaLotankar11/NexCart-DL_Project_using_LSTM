@@ -72,19 +72,10 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'total_amount', 'status', 'created_at', 'items', 'razorpay_order_id']
 
     def get_status(self, obj):
-        if obj.status == 'Cancelled':
-            return 'Cancelled'
-        
-        # Calculate time passed since order was created
-        now = timezone.now()
-        time_passed = now - obj.created_at
-        
-        # If order is older than 24 hours, it is Delivered
-        if time_passed > datetime.timedelta(hours=24):
-            return 'Delivered'
-        
-        # For the first 24 hours, show 'Arriving Tomorrow' (matching frontend logic)
-        return 'Arriving Tomorrow'
+        # Call the model method to ensure the DB field matches reality
+        # This will trigger the blockchain sync signal if the status changes
+        obj.update_realtime_status()
+        return obj.status
 
 class RecommendationSerializer(serializers.ModelSerializer):
     recommended_product = ProductSerializer(read_only=True)

@@ -30,9 +30,25 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total_amount', 'status', 'created_at')
+    list_display = ('id', 'user', 'total_amount', 'status', 'created_at', 'sync_ledger')
     list_filter = ('status', 'created_at')
     inlines = [OrderItemInline]
+
+    def get_queryset(self, request):
+        """
+        Force update of all statuses whenever the admin list is refreshed.
+        This provides the 'real-time backend' requested.
+        """
+        qs = super().get_queryset(request)
+        for order in qs:
+            order.update_realtime_status()
+        return qs
+
+    def sync_ledger(self, obj):
+        # This provides a visual indicator if it's already on Arrived (2)
+        # It's a helper for the admin to see the sync state
+        return obj.status
+    sync_ledger.short_description = 'Sync Logic'
 
 @admin.register(Recommendation)
 class RecommendationAdmin(admin.ModelAdmin):
