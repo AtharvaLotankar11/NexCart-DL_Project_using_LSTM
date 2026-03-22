@@ -5,7 +5,7 @@ import tensorflow as tf
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import OrderItem, Product
+from .models import OrderItem, Product, Recommendation
 from .serializers import ProductSerializer
 
 # Load LSTM Artifacts (Lazy loading for performance)
@@ -127,12 +127,36 @@ def get_user_recommendations(request):
             
     # 6. Preserve original recommendation order (Logic Sort)
     if not final_ids:
-         # Hard fallback into same categories if LSTM completely fails
-         fallback = Product.objects.filter(category__name__in=fav_categories).exclude(id__in=visited_ids)[:5]
-         return Response(ProductSerializer(fallback, many=True).data)
+        # Hard fallback logic
+        if fav_categories:
+            # Case: User has orders, but LSTM failed to find more
+            fallback = Product.objects.filter(category__name__in=fav_categories).exclude(id__in=visited_ids)[:5]
+            score = 0.5
+        else:
+            # Case: Cold Start (User has 0 history) - recommend recent/top products
+            fallback = Product.objects.all().order_by('-created_at')[:5]
+            score = 0.1 # Indicator for "General Trending"
+            
+        # Persist fallback for admin visibility
+        Recommendation.objects.filter(user=request.user).delete()
+        for p_fallback in fallback:
+            Recommendation.objects.create(user=request.user, recommended_product=p_fallback, score=score)
+            
+        return Response(ProductSerializer(fallback, many=True).data)
 
     preserved_order = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(final_ids)])
     recommended_products = Product.objects.filter(id__in=final_ids).order_by(preserved_order)
     
+    # 7. Persistence: Save recommendations for Admin view
+    # Clear old ones first for a fresh 'snapshot' or use update_or_create
+    # To keep the Admin clean but relevant, we'll store the top 5
+    Recommendation.objects.filter(user=request.user).delete()
+    for product in recommended_products:
+        Recommendation.objects.create(
+            user=request.user,
+            recommended_product=product,
+            score=0.95 # Generic high-confidence score for LSTM results
+        )
+
     serializer = ProductSerializer(recommended_products, many=True)
     return Response(serializer.data)
