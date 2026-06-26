@@ -8,20 +8,30 @@ class ApiConfig(AppConfig):
     def ready(self):
         import api.signals
         
-        # Run order status update on startup (in a separate thread to not block startup)
+        # Run order status update on startup and periodically
         import threading
-        def update_orders_on_startup():
+        import time
+        
+        def update_orders_periodically():
+            """Background task that updates order statuses every 60 seconds"""
             try:
                 from django.core.management import call_command
-                import time
-                time.sleep(3)  # Wait for Django to fully start
+                time.sleep(5)  # Initial wait for Django to fully start
+                
                 print("\n[Startup] Checking order statuses...")
                 call_command('update_order_statuses')
+                
+                # Then check every 60 seconds
+                while True:
+                    time.sleep(60)  # Check every minute
+                    print("\n[Periodic Check] Updating order statuses...")
+                    call_command('update_order_statuses')
+                    
             except Exception as e:
-                print(f"[Startup] Order update warning: {e}")
+                print(f"[Background Task] Order update error: {e}")
         
         # Only run in the main process, not in reloader process
         import os
         if os.environ.get('RUN_MAIN') == 'true':
-            threading.Thread(target=update_orders_on_startup, daemon=True).start()
+            threading.Thread(target=update_orders_periodically, daemon=True).start()
 

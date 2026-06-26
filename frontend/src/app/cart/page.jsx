@@ -112,6 +112,7 @@ export default function CartPage() {
         order_id: order_id,
         handler: async function (response) {
             try {
+              // Step 1: Verify payment with backend
               await axios.post('http://127.0.0.1:8000/api/verify-payment/', {
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
@@ -120,19 +121,32 @@ export default function CartPage() {
                   headers: { Authorization: `Bearer ${Cookies.get('access_token')}` }
               });
 
+              // Step 2: User creates order on blockchain with their MetaMask
               if (contract && account) {
                   const blockchainKey = response.razorpay_order_id;
-                  console.log("[Blockchain] Writing order to ledger with key:", blockchainKey);
-                  const tx = await contract.createOrder(blockchainKey);
-                  await tx.wait();
-                  console.log("[Blockchain] Order successfully written. TX:", tx.hash);
+                  console.log("[Blockchain] User creating order on ledger:", blockchainKey);
+                  
+                  try {
+                    const tx = await contract.createOrder(blockchainKey);
+                    await tx.wait();
+                    console.log("[Blockchain] Order created by user. TX:", tx.hash);
+                  } catch (blockchainErr) {
+                    // If order already exists (backend created it first), that's fine
+                    if (blockchainErr.message.includes("Order already exists")) {
+                      console.log("[Blockchain] Order already exists (created by backend)");
+                    } else {
+                      console.error("[Blockchain] Error:", blockchainErr);
+                    }
+                  }
+              } else {
+                console.log("[Blockchain] MetaMask not connected - backend will handle order creation");
               }
 
               clearCart();
               window.location.href = '/orders?success=true';
             } catch (err) {
-              console.error("Verification or blockchain error:", err);
-              // Best outcome: we proceed anyway since payment actually succeeded on backend
+              console.error("Verification error:", err);
+              // Payment succeeded on backend, proceed anyway
               clearCart();
               window.location.href = '/orders?success=true';
             }

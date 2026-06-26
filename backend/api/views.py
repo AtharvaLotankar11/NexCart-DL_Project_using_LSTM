@@ -114,10 +114,10 @@ def verify_payment(request):
         # Verify Signature
         razorpay_client.utility.verify_payment_signature(params_dict)
         
-        # Update Order Status
+        # Update Order Status - Keep as Pending (time-based updater will handle transitions)
         order = Order.objects.get(razorpay_order_id=razorpay_order_id)
-        order.status = 'Arriving Tomorrow' # Success status
         order.razorpay_payment_id = razorpay_payment_id
+        # Status remains 'Pending' - automatic updater will transition based on time
         order.save()
         
         # Clear User Cart
