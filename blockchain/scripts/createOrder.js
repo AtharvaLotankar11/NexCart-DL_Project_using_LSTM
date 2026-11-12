@@ -13,10 +13,22 @@ async function main() {
 
   console.log(`[Blockchain Create] Creating Order ${orderId} on ledger...`);
   try {
+    // Check if order already exists first
+    const exists = await OrderLedger.orderExists(orderId);
+    if (exists) {
+      console.log(`[Blockchain Create] Order ${orderId} already exists on blockchain.`);
+      process.exit(0); // Success - idempotent
+    }
+    
     const tx = await OrderLedger.createOrder(orderId);
     await tx.wait();
     console.log(`[Blockchain Create] Order ${orderId} successfully created. TX: ${tx.hash}`);
   } catch (err) {
+    // Check if the error is because order already exists
+    if (err.message && err.message.includes("already exists")) {
+      console.log(`[Blockchain Create] Order ${orderId} already exists (caught in error).`);
+      process.exit(0);
+    }
     console.error(`[Blockchain Create] Failed for ${orderId}:`, err.message);
     process.exit(1);
   }

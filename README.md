@@ -23,6 +23,93 @@ Developed entirely by **Atharva Lotankar**, NexCart AI stands as a showcase of c
 
 ---
 
+## ⚡ Quick Start Commands
+
+When you first open this project, run these commands in sequence to get everything running:
+
+### Prerequisites Check
+```bash
+# Verify installations
+node --version    # Should be v18+
+python --version  # Should be 3.10+
+psql --version    # PostgreSQL should be installed
+
+# Create PostgreSQL database
+psql -U postgres
+CREATE DATABASE nexcart_db;
+\q
+```
+
+### Step 1: Setup Environment Files
+```bash
+# From project root
+copy frontend\.env.example frontend\.env.local
+copy backend\.env.example backend\.env
+copy blockchain\.env.example blockchain\.env
+```
+
+### Step 2: Start Backend (Terminal 1) - **MUST RUN FIRST**
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python seed_data.py
+python manage.py runserver
+```
+
+**⚠️ CRITICAL:** Backend must be running BEFORE you place orders, otherwise blockchain sync will fail!
+
+### Step 3: Start Frontend (Terminal 2)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Step 4: Setup Blockchain (Terminal 3 - Optional)
+```bash
+cd blockchain
+npm install
+npx hardhat compile
+```
+
+**Access the application:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+- Blockchain: Local Sepolia testnet
+
+### ⚠️ Common Issues & Solutions
+
+**Issue: "Order does not exist" blockchain errors**
+- **Root Cause:** Orders were created when backend wasn't running, so they never got synced to blockchain
+- **Solution:** 
+  1. Always start backend FIRST before using the app
+  2. Run `python sync_all_orders_blockchain.py` in backend folder to fix existing orders
+  3. New orders will automatically sync to blockchain if backend is running
+
+**Issue: Chart width/height warnings**
+- **Cause:** Recharts components loading before container dimensions are set
+- **Solution:** This is a cosmetic warning and doesn't affect functionality. Charts will render correctly after initial load.
+
+**Issue: MetaMask connection required**
+- **Cause:** Frontend uses Sepolia testnet for blockchain verification
+- **Solution:** 
+  1. Install MetaMask browser extension
+  2. Click "Connect with MetaMask" button
+  3. Switch to Sepolia testnet when prompted
+  4. Approve the connection
+
+**Issue: Transaction execution reverted**
+- **Cause:** Trying to interact with blockchain before orders are synced
+- **Solution:** 
+  1. Ensure backend is running
+  2. Run the one-time sync script: `python sync_all_orders_blockchain.py`
+  3. Place new orders (they'll auto-sync if backend is running)
+
+---
+
 ## 🚀 Fast-Track Setup (Post-Clone)
 
 Immediately after cloning, run these commands in order to initialize the entire NexCart ecosystem correctly. These steps are optimized for **Windows** environments.
